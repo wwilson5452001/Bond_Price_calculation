@@ -1,0 +1,104 @@
+def price_product(C, D):
+    output = 0
+  # Calculates the sum of the cash flows (C) multiplied by the corresponding discount factors (D)   
+    
+
+    for i in range(len(C)):
+        output += C[i] * D[i]
+ # Iterate through the cash flows and discount factors lists, 
+ # multiplying each cash flow by its corresponding discount factor and adding to output.
+ #cash flows，C* discount factors，D >> Present Value
+
+    
+    return output
+
+
+
+def generate_simple_discount(r):
+    output = []
+
+ 
+    for i in range(len(r)):
+        discount_factor = (1/ (1 + r[i])) ** (i+1)
+        output.append(discount_factor)
+
+
+    
+    return output
+
+
+
+class Bond(object):
+    def __init__(self, P, T, c):
+        self.cash_flows = self.generate_cash_flows(P, T, c)
+    
+    def generate_cash_flows(self, P, T, c):
+        output = T * [c * P]
+        output[-1] = output[-1] + P
+        return output
+
+
+class Discounter(object):
+    def __init__(self, rates):
+        self.rates = rates 
+        
+    def get_discount_factors(self):
+        raise(NotImplementedError)
+
+
+class DiscounterContinuous(Discounter):
+    def __init__(self, rates):
+         super().__init__(rates)
+        
+    def get_discount_factors(self):        
+        constant = 2.7182
+        
+        discount_factors = []
+        for i,r in enumerate(self.rates): 
+            discount_factors.append(constant**(-r * (i+1)))
+        
+        return discount_factors
+
+
+class DiscounterSimple(Discounter):
+    def __init__(self, rates):
+         super().__init__(rates)
+        
+    def get_discount_factors(self):            
+        discount_factors = [] 
+        for i,r in enumerate(self.rates): 
+            discount_factors.append((1 / (1 + r)) ** (i + 1))
+        
+        return discount_factors
+
+
+class Pricer(object):
+    def __init__(self, Discounter):
+        self.discounts = Discounter
+        
+    def price(self, Product):
+        cash_flows = Product.get_cash_flows() 
+        discount_factors = self.discounts.get_discount_factors()
+
+        return price_product(cash_flows, discount_factors)
+
+
+class Product(object):
+    def __init__(self):
+        self.cash_flows = []
+        
+    def get_cash_flows(self):
+        return self.cash_flows
+        
+    def generate_price(self, Pricer):
+        return Pricer.price(self)
+
+class Bond(Product):
+    def __init__(self, P, T, c):
+        super().__init__()
+        self.cash_flows = self.generate_cash_flows(P, T, c)
+        
+    def generate_cash_flows(self, P, T, c):
+        output = T * [c * P]
+        output[-1] = output[-1] + P
+        return output        
